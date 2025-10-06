@@ -455,11 +455,6 @@ MIT
 
 # BG - Scan&Serve — QR меню PWA (Firebase)
 
-> **Кратко описание:** PWA приложение за ресторантско меню с поръчки в реално време. Клиентите сканират QR код по маса и правят поръчка; админ/KDS екранът вижда поръчките на живо и сменя статуси. Стек: React + Vite, Tailwind CSS, Firebase (Auth, Firestore, Functions, Storage, Hosting, FCM). Плащанията са **по избор** с флаг за вкл./изкл. per restaurant.
-
-* **Препоръчано име на репото:** `qrmenu-pwa-firebase`
-* **Продуктово име (бренд):** **Scan&Serve**
-
 ---
 
 ## ✨ Основни възможности
@@ -504,8 +499,6 @@ MIT
 ---
 
 ## 🗂️ Структура на проекта
-
-> Може да е **една апликация** със `/admin` маршрут **или** две отделни Vite апки. По-долу е предложено разделение на две.
 
 ```
 qrmenu-pwa-firebase/
@@ -883,16 +876,6 @@ firebase emulators:start
 ## 📁 Лиценз
 
 MIT
-
----
-
-## 🏷️ Идеи за име (ако предпочитате брандово)
-
-* **QRМеню** (QRMenu) • **Scan&Serve** • **TableTap** • **DigiMenu** • **QuickBite**
-* **ScanOrder** • **Tap’n’Order** • **MenuLink** • **MasaQR** • **Fork&QR**
-* **OrderFlow** • **BiteWave**
-
-> За публичен GitHub профил препоръчваме дескриптивно име на репото (**`qrmenu-pwa-firebase`**) и брандово име в UI (**Scan&Serve**).
 
 ---
 

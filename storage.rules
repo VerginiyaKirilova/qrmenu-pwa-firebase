@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin(rid) {
+      return isAuthenticated() &&
+        (request.auth.token.admin == true ||
+         request.auth.token.role == 'admin' ||
+         request.auth.token.restaurants[rid] == 'admin');
+    }
+
+    // Public read access for all files
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+
+    // Restaurant-specific rules
+    match /restaurants/{rid}/{allPaths=**} {
+      // Only admins can write to restaurant files
+      allow write: if isAdmin(rid);
+    }
+
+    // Menu item images
+    match /restaurants/{rid}/menuItems/{itemId}/{imageFile} {
+      // Public read for menu item images
+      allow read: if true;
+
+      // Only admins can write menu item images
+      allow write: if isAdmin(rid) &&
+        // Restrict file types to images
+        request.resource.contentType.matches('image/.*') &&
+        // Limit file size to 5MB
+        request.resource.size < 5 * 1024 * 1024;
+    }
+  }
+}

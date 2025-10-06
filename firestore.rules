@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin(rid) {
+      return isAuthenticated() &&
+        (request.auth.token.admin == true ||
+         request.auth.token.role == 'admin' ||
+         request.auth.token.restaurants[rid] == 'admin');
+    }
+
+    function isKDS(rid) {
+      return isAuthenticated() &&
+        (request.auth.token.role == 'kds' ||
+         request.auth.token.restaurants[rid] == 'kds');
+    }
+
+    function isAdminOrKDS(rid) {
+      return isAdmin(rid) || isKDS(rid);
+    }
+
+    // Restaurant rules
+    match /restaurants/{rid} {
+      // Public read for restaurant info
+      allow read: if true;
+      // Only admins can write to restaurant info
+      allow write: if isAdmin(rid);
+
+      // Tables rules
+      match /tables/{tableId} {
+        // Public read for tables
+        allow read: if true;
+        // Only admins can write to tables
+        allow write: if isAdmin(rid);
+      }
+
+      // Menu categories rules
+      match /menuCategories/{categoryId} {
+        // Public read for menu categories
+        allow read: if true;
+        // Only admins can write to menu categories
+        allow write: if isAdmin(rid);
+      }
+
+      // Menu items rules
+      match /menuItems/{itemId} {
+        // Public read for menu items
+        allow read: if true;
+        // Only admins can write to menu items
+        allow write: if isAdmin(rid);
+      }
+
+      // Orders rules
+      match /orders/{orderId} {
+        // Admin/KDS can read all orders
+        allow read: if isAdminOrKDS(rid);
+
+        // Clients can read their own orders by sessionId
+        allow read: if resource.data.sessionId == request.query.sessionId;
+
+        // Only Cloud Functions can create orders
+        allow create: if false;
+
+        // Only Admin/KDS can update orders
+        allow update: if isAdminOrKDS(rid) &&
+          // Only allow updating specific fields
+          (request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'updatedAt', 'paid']));
+
+        // Only Admin can delete orders
+        allow delete: if isAdmin(rid);
+      }
+
+      // Counters rules (for order numbering)
+      match /counters/{date} {
+        // Only Cloud Functions can read/write counters
+        allow read, write: if false;
+      }
+
+      // Admin devices for FCM
+      match /adminDevices/{deviceId} {
+        // Only authenticated users can register their device
+        allow create, update: if isAuthenticated() &&
+          request.resource.data.uid == request.auth.uid;
+
+        // Only the owner can read/delete their device
+        allow read, delete: if isAuthenticated() &&
+          resource.data.uid == request.auth.uid;
+      }
+    }
+  }
+}
